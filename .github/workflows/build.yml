@@ -1,0 +1,56 @@
+name: Build Amethyst
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    env:
+      THEOS: ${{ github.workspace }}/theos
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: brew install ldid xz
+
+      - name: Setup Theos
+        run: git clone --depth=1 --recursive https://github.com/theos/theos.git "$THEOS"
+
+      - name: Download iOS SDK
+        run: git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
+
+      - name: Build tweak
+        run: make package FINALPACKAGE=1
+
+      - name: Package .deb for injection
+        run: |
+          DYLIB="$(find .theos -name 'Amethyst.dylib' -type f | head -n1)"
+          if [ -z "$DYLIB" ]; then
+            echo "Amethyst.dylib not found"
+            exit 1
+          fi
+          python3 scripts/build_deb.py --dylib "$DYLIB"
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-deb
+          path: |
+            packages/com.amethyst.menu_1.0.0_iphoneos-arm64.deb
+            packages/inject/Amethyst.dylib
+            packages/inject/Amethyst.plist
+          if-no-files-found: error
+
+      - name: Upload Theos package (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: amethyst-theos-deb
+          path: packages/*.deb
+          if-no-files-found: ignore

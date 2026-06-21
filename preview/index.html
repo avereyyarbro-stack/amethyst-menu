@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amethyst — mod menu preview</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="waves" aria-hidden="true"></canvas>
+
+  <button type="button" class="floating-menu" id="openMenu">menu</button>
+
+  <div class="panel-backdrop hidden" id="panel">
+    <div class="panel">
+    <header class="top-row">
+      <span class="badge">● operational</span>
+      <span class="timestamp" id="timestamp"></span>
+    </header>
+
+    <h1 class="title">Amethyst <em>mod menu</em></h1>
+    <p class="section-label">informational mods</p>
+
+    <div class="toggles" id="toggles"></div>
+
+    <p class="terminal">$ surface check: nothing of interest reported.<span class="cursor">█</span></p>
+
+    <footer class="grid">
+      <div><span class="label">type</span><span class="value">info overlay</span></div>
+      <div><span class="label">platform</span><span class="value">war robots</span></div>
+      <div><span class="label">version</span><span class="value">1.0.0</span></div>
+      <div><span class="label">status</span><span class="value">ui only</span></div>
+    </footer>
+
+    <button type="button" class="close-btn" id="closeMenu">close</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
