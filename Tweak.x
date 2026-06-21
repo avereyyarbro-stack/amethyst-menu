@@ -66,18 +66,18 @@ static void AmethystRegisterLifecycleHooks(void) {
                     }];
 }
 
-static void AmethystStart(void) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        NSLog(@"[Amethyst] sideload build loaded — tap menu top-right");
-        AmethystRegisterLifecycleHooks();
-        dispatch_after(
-            dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
-            dispatch_get_main_queue(), ^{
-                AmethystInstallOverlay();
-            });
-    });
+static void AmethystBootstrap(void) {
+    NSLog(@"[Amethyst] sideload build loaded — tap menu top-right");
+    AmethystRegisterLifecycleHooks();
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
+        dispatch_get_main_queue(), ^{
+            AmethystInstallOverlay();
+        });
 }
 
-__attribute__((constructor)) static void AmethystInit(void) {
-    AmethystStart();
+%ctor {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        AmethystBootstrap();
+    });
 }

@@ -31,7 +31,7 @@ jobs:
       - name: Build sideload dylib
         run: |
           set -o pipefail
-          make 2>&1 | tee build.log
+          make package FINALPACKAGE=1 2>&1 | tee build.log
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
             echo "===== BUILD LOG ====="
             cat build.log
@@ -42,7 +42,7 @@ jobs:
       - name: Package .deb for injection
         run: |
           mkdir -p packages/inject
-          DYLIB="$(find .theos -type f \( -name 'Amethyst.dylib' -o -name 'libAmethyst.dylib' \) | head -n1)"
+          DYLIB="$(find .theos -type f -name 'Amethyst.dylib' | head -n1)"
           if [ -z "$DYLIB" ]; then
             echo "Amethyst.dylib not found"
             find .theos -type f
