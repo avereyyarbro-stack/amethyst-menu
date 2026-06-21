@@ -1,9 +1,8 @@
 Package: com.amethyst.menu
 Name: Amethyst
-Version: 1.0.0
+Version: 1.1.0
 Architecture: iphoneos-arm64
-Description: UI overlay mod menu for War Robots — informational QoL toggles only.
+Description: Sideload-compatible Amethyst overlay menu for War Robots.
 Maintainer: Amethyst
 Author: Amethyst
 Section: Tweaks
-Depends: mobilesubstrate (>= 0.9.5000)

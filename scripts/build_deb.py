@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGES = ROOT / "packages"
-DEB_NAME = "com.amethyst.menu_1.0.0_iphoneos-arm64.deb"
+DEB_NAME = "com.amethyst.menu_1.1.0_iphoneos-arm64.deb"
 
 
 def build_minimal_arm64_dylib() -> bytes:
@@ -135,7 +135,9 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=PACKAGES / DEB_NAME)
     args = parser.parse_args()
 
-    plist = (ROOT / "Amethyst.plist").read_bytes()
+    plist_path = ROOT / "Amethyst.plist"
+    plist = plist_path.read_bytes() if plist_path.exists() else None
+
     if args.dylib and args.dylib.exists():
         dylib = args.dylib.read_bytes()
         dylib_source = str(args.dylib)
@@ -154,17 +156,16 @@ def main() -> None:
 
     inject_paths = [
         "Library/MobileSubstrate/DynamicLibraries/Amethyst.dylib",
-        "Library/MobileSubstrate/DynamicLibraries/Amethyst.plist",
         "var/jb/Library/MobileSubstrate/DynamicLibraries/Amethyst.dylib",
-        "var/jb/Library/MobileSubstrate/DynamicLibraries/Amethyst.plist",
     ]
 
     data_files: dict[str, bytes] = {}
     for path in inject_paths:
-        if path.endswith(".dylib"):
-            data_files[f"./{path}"] = dylib
-        else:
-            data_files[f"./{path}"] = plist
+        data_files[f"./{path}"] = dylib
+
+    if plist:
+        data_files["./Library/MobileSubstrate/DynamicLibraries/Amethyst.plist"] = plist
+        data_files["./var/jb/Library/MobileSubstrate/DynamicLibraries/Amethyst.plist"] = plist
 
     make_deb(control_files, data_files, args.out)
 
@@ -173,7 +174,8 @@ def main() -> None:
         shutil.rmtree(inject_dir)
     inject_dir.mkdir(parents=True)
     (inject_dir / "Amethyst.dylib").write_bytes(dylib)
-    (inject_dir / "Amethyst.plist").write_bytes(plist)
+    if plist:
+        (inject_dir / "Amethyst.plist").write_bytes(plist)
 
     print(f"Built: {args.out}")
     print(f"Dylib source: {dylib_source}")

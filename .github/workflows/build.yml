@@ -28,8 +28,8 @@ jobs:
           rm -rf "$THEOS/sdks"
           git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
-      - name: Build tweak
-        run: make package FINALPACKAGE=1
+      - name: Build sideload dylib
+        run: make
 
       - name: Package .deb for injection
         run: |
@@ -45,7 +45,6 @@ jobs:
         with:
           name: amethyst-deb
           path: |
-            packages/com.amethyst.menu_1.0.0_iphoneos-arm64.deb
+            packages/com.amethyst.menu_1.1.0_iphoneos-arm64.deb
             packages/inject/Amethyst.dylib
-            packages/inject/Amethyst.plist
           if-no-files-found: error

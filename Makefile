@@ -1,19 +1,17 @@
 TARGET := iphone:16.5:14.0
-INSTALL_TARGET_PROCESSES = WarRobots
+ARCHS = arm64
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = Amethyst
+LIBRARY_NAME = Amethyst
 
-Amethyst_FILES = Tweak.x \
+Amethyst_FILES = AmethystLoader.m \
 	AmethystMenu/AmethystMenuViewController.m \
 	AmethystMenu/AmethystToggleRow.m \
 	AmethystMenu/AmethystSettings.m \
 	AmethystMenu/AmethystFloatingButton.m
 Amethyst_CFLAGS = -fobjc-arc
+Amethyst_LDFLAGS = -install_name @executable_path/Frameworks/Amethyst.dylib
 Amethyst_FRAMEWORKS = UIKit QuartzCore
 
-include $(THEOS)/makefiles/tweak.mk
-
-after-install::
-	install.exec "killall -9 WarRobots" || true
+include $(THEOS)/makefiles/library.mk
