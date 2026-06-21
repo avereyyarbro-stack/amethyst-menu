@@ -6,7 +6,8 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = Amethyst
 
 Amethyst_USE_SUBSTRATE = 0
-Amethyst_FILES = AmethystLoader.m \
+Amethyst_FILES = Amethyst.x \
+	AmethystLoader.m \
 	AmethystMenu/AmethystMenuViewController.m \
 	AmethystMenu/AmethystToggleRow.m \
 	AmethystMenu/AmethystSettings.m \

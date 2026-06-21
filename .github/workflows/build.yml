@@ -29,7 +29,10 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Build sideload dylib
-        run: make clean && make
+        run: |
+          set -o pipefail
+          make 2>&1 | tee build.log
+          test ${PIPESTATUS[0]} -eq 0
 
       - name: Package .deb for injection
         run: |
