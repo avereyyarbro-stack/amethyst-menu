@@ -18,13 +18,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install build tools
-        run: brew install ldid xz
+        run: brew install ldid xz dpkg
 
       - name: Setup Theos
         run: git clone --depth=1 --recursive https://github.com/theos/theos.git "$THEOS"
 
       - name: Download iOS SDK
-        run: git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
+        run: |
+          rm -rf "$THEOS/sdks"
+          git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Build tweak
         run: make package FINALPACKAGE=1
@@ -47,10 +49,3 @@ jobs:
             packages/inject/Amethyst.dylib
             packages/inject/Amethyst.plist
           if-no-files-found: error
-
-      - name: Upload Theos package (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: amethyst-theos-deb
-          path: packages/*.deb
-          if-no-files-found: ignore
