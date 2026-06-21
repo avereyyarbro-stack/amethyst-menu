@@ -1,4 +1,3 @@
-#import "AmethystLoader.h"
 #import <UIKit/UIKit.h>
 #import "AmethystMenu/AmethystMenuViewController.h"
 #import "AmethystMenu/AmethystFloatingButton.h"
@@ -67,7 +66,7 @@ static void AmethystRegisterLifecycleHooks(void) {
                     }];
 }
 
-void AmethystStart(void) {
+static void AmethystStart(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
         NSLog(@"[Amethyst] sideload build loaded — tap menu top-right");
         AmethystRegisterLifecycleHooks();
@@ -77,4 +76,8 @@ void AmethystStart(void) {
                 AmethystInstallOverlay();
             });
     });
+}
+
+__attribute__((constructor)) static void AmethystInit(void) {
+    AmethystStart();
 }

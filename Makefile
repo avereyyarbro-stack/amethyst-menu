@@ -3,11 +3,9 @@ ARCHS = arm64
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = Amethyst
+LIBRARY_NAME = Amethyst
 
-Amethyst_USE_SUBSTRATE = 0
-Amethyst_FILES = Amethyst.x \
-	AmethystLoader.m \
+Amethyst_FILES = AmethystLoader.m \
 	AmethystMenu/AmethystMenuViewController.m \
 	AmethystMenu/AmethystToggleRow.m \
 	AmethystMenu/AmethystSettings.m \
@@ -15,10 +13,4 @@ Amethyst_FILES = Amethyst.x \
 Amethyst_CFLAGS = -fobjc-arc
 Amethyst_FRAMEWORKS = UIKit QuartzCore
 
-include $(THEOS)/makefiles/tweak.mk
-
-after-all::
-	@DYLIB=$$(find $(THEOS_OBJ_DIR) -type f -name 'Amethyst.dylib' | head -n1); \
-	if [ -n "$$DYLIB" ]; then \
-	  install_name_tool -id @executable_path/Frameworks/Amethyst.dylib "$$DYLIB" || true; \
-	fi
+include $(THEOS)/makefiles/library.mk
