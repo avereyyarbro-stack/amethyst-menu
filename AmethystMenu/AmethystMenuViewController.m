@@ -2,6 +2,7 @@
 #import "AmethystToggleRow.h"
 #import "AmethystSettings.h"
 #import "AmethystFloatingButton.h"
+#import "AmethystLayoutLogger.h"
 
 @interface AmethystWaveView : UIView
 @end
@@ -133,6 +134,7 @@
     void (^toggleHandler)(AmethystMod, BOOL) = ^(AmethystMod mod, BOOL enabled) {
         NSLog(@"[Amethyst] mod %ld -> %@", (long)mod, enabled ? @"on" : @"off");
         if ([[AmethystSettings shared] isLayoutMod:mod]) {
+            [AmethystLayoutLogger logLayoutsIfEnabled];
             [weakSelf updateTerminalForLayouts];
         }
     };
@@ -275,12 +277,12 @@
 }
 
 - (void)logLayoutsTapped {
-    NSLog(@"[Amethyst] layout log requested");
+    [AmethystLayoutLogger logLayoutsNow];
     [self updateTerminalForLayouts];
 }
 
 - (void)updateTerminalForLayouts {
-    self.terminalLabel.text = @"$ layouts -> logged to console█";
+    self.terminalLabel.text = [NSString stringWithFormat:@"$ layouts -> %@█", [AmethystLayoutLogger logFilePath]];
 }
 
 - (void)refreshTimestamp {

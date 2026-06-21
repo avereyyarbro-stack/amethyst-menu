@@ -29,9 +29,7 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Build sideload dylib
-        run: |
-          set -o pipefail
-          make 2>&1 | tee build.log
+        run: make 2>&1 | tee build.log
 
       - name: Package for Sideloadly injection
         run: |
@@ -40,16 +38,13 @@ jobs:
           find .theos -type f -name '*.dylib' -print
           DYLIB="$(find .theos -type f \( -name 'libAmethyst.dylib' -o -name 'Amethyst.dylib' \) -print -quit || true)"
           if [ -z "$DYLIB" ]; then
-            DYLIB="$(find .theos/obj -type f -name '*.dylib' -print -quit || true)"
-          fi
-          if [ -z "$DYLIB" ]; then
             echo "Amethyst dylib not found under .theos"
+            tail -100 build.log || true
             exit 1
           fi
           echo "Using dylib: $DYLIB"
           cp "$DYLIB" packages/inject/Amethyst.dylib
           install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib
-          file packages/inject/Amethyst.dylib
           python3 scripts/build_deb.py --dylib packages/inject/Amethyst.dylib
           ls -la packages packages/inject
 
@@ -61,3 +56,11 @@ jobs:
             packages/com.amethyst.menu_1.1.0_iphoneos-arm64.deb
             packages/inject/Amethyst.dylib
           if-no-files-found: error
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
