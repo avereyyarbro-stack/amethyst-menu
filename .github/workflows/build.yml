@@ -44,7 +44,7 @@ jobs:
           fi
           echo "Using dylib: $DYLIB"
           cp "$DYLIB" packages/inject/Amethyst.dylib
-          install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib
+          install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib || true
           python3 scripts/build_deb.py --dylib packages/inject/Amethyst.dylib
           ls -la packages packages/inject
 
