@@ -10,28 +10,14 @@ static UIWindow *AmethystKeyWindow(void) {
         for (UIWindow *window in windowScene.windows) {
             if (window.isKeyWindow) return window;
         }
-        if (windowScene.windows.count > 0) {
-            return windowScene.windows.firstObject;
-        }
     }
-    return UIApplication.sharedApplication.keyWindow;
+    return nil;
 }
 
-static void AmethystInstallOverlayWithRetry(NSInteger attempt);
-
-static void AmethystInstallOverlayWithRetry(NSInteger attempt) {
+static void AmethystInstallOverlay(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
         UIWindow *keyWindow = AmethystKeyWindow();
-        if (!keyWindow) {
-            if (attempt < 40) {
-                dispatch_after(
-                    dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                    dispatch_get_main_queue(), ^{
-                        AmethystInstallOverlayWithRetry(attempt + 1);
-                    });
-            }
-            return;
-        }
+        if (!keyWindow) return;
 
         AmethystMenuViewController *menu = [AmethystMenuViewController sharedController];
         [menu attachToWindow:keyWindow];
@@ -42,42 +28,26 @@ static void AmethystInstallOverlayWithRetry(NSInteger attempt) {
     });
 }
 
-static void AmethystInstallOverlay(void) {
-    AmethystInstallOverlayWithRetry(0);
+%hook UIApplication
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    BOOL result = %orig;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        AmethystInstallOverlay();
+    });
+    return result;
 }
 
-static void AmethystRegisterLifecycleHooks(void) {
-    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    [center addObserverForName:UIApplicationDidFinishLaunchingNotification
-                        object:nil
-                         queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *note) {
-                        dispatch_after(
-                            dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
-                            dispatch_get_main_queue(), ^{
-                                AmethystInstallOverlay();
-                            });
-                    }];
-    [center addObserverForName:UIApplicationDidBecomeActiveNotification
-                        object:nil
-                         queue:[NSOperationQueue mainQueue]
-                    usingBlock:^(__unused NSNotification *note) {
-                        AmethystInstallOverlay();
-                    }];
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    %orig;
+    AmethystInstallOverlay();
 }
 
-static void AmethystBootstrap(void) {
-    NSLog(@"[Amethyst] sideload build loaded ? tap menu top-right");
-    AmethystRegisterLifecycleHooks();
-    dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)),
-        dispatch_get_main_queue(), ^{
-            AmethystInstallOverlay();
-        });
-}
+%end
 
 %ctor {
-    dispatch_async(dispatch_get_main_queue(), ^{
-        AmethystBootstrap();
+    NSLog(@"[Amethyst] loaded — tap 'menu' top-right to open overlay");
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        AmethystInstallOverlay();
     });
 }
