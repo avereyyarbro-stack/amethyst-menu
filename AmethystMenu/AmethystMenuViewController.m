@@ -2,6 +2,7 @@
 #import "AmethystToggleRow.h"
 #import "AmethystSettings.h"
 #import "AmethystFloatingButton.h"
+#import "AmethystLayoutLogger.h"
 
 @interface AmethystWaveView : UIView
 @end
@@ -107,22 +108,59 @@
     sectionLabel.translatesAutoresizingMaskIntoConstraints = NO;
     sectionLabel.font = [UIFont fontWithName:@"Menlo" size:11] ?: [UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightRegular];
     sectionLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.45];
-    sectionLabel.text = @"informational mods";
+    sectionLabel.text = [[AmethystSettings shared] categoryTitle:AmethystModCategoryInformational];
     [_panel addSubview:sectionLabel];
 
-    UIStackView *stack = [[UIStackView alloc] init];
-    stack.translatesAutoresizingMaskIntoConstraints = NO;
-    stack.axis = UILayoutConstraintAxisVertical;
-    stack.spacing = 10;
-    [_panel addSubview:stack];
+    UIStackView *infoStack = [[UIStackView alloc] init];
+    infoStack.translatesAutoresizingMaskIntoConstraints = NO;
+    infoStack.axis = UILayoutConstraintAxisVertical;
+    infoStack.spacing = 10;
+    [_panel addSubview:infoStack];
 
-    for (NSInteger i = 0; i < AmethystModCount; i++) {
-        AmethystToggleRow *row = [[AmethystToggleRow alloc] initWithMod:(AmethystMod)i];
-        row.onToggle = ^(AmethystMod mod, BOOL enabled) {
-            NSLog(@"[Amethyst] mod %ld -> %@", (long)mod, enabled ? @"on" : @"off");
-        };
-        [stack addArrangedSubview:row];
+    UILabel *layoutsLabel = [[UILabel alloc] init];
+    layoutsLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    layoutsLabel.font = [UIFont fontWithName:@"Menlo" size:11] ?: [UIFont monospacedSystemFontOfSize:11 weight:UIFontWeightRegular];
+    layoutsLabel.textColor = [UIColor colorWithWhite:1.0 alpha:0.45];
+    layoutsLabel.text = [[AmethystSettings shared] categoryTitle:AmethystModCategoryLayouts];
+    [_panel addSubview:layoutsLabel];
+
+    UIStackView *layoutStack = [[UIStackView alloc] init];
+    layoutStack.translatesAutoresizingMaskIntoConstraints = NO;
+    layoutStack.axis = UILayoutConstraintAxisVertical;
+    layoutStack.spacing = 10;
+    [_panel addSubview:layoutStack];
+
+    __weak typeof(self) weakSelf = self;
+    void (^toggleHandler)(AmethystMod, BOOL) = ^(AmethystMod mod, BOOL enabled) {
+        NSLog(@"[Amethyst] mod %ld -> %@", (long)mod, enabled ? @"on" : @"off");
+        if ([[AmethystSettings shared] isLayoutMod:mod]) {
+            [AmethystLayoutLogger logLayoutsIfEnabled];
+            [weakSelf updateTerminalForLayouts];
+        }
+    };
+
+    for (NSNumber *modNum in [[AmethystSettings shared] modsForCategory:AmethystModCategoryInformational]) {
+        AmethystToggleRow *row = [[AmethystToggleRow alloc] initWithMod:(AmethystMod)modNum.integerValue];
+        row.onToggle = toggleHandler;
+        [infoStack addArrangedSubview:row];
     }
+
+    for (NSNumber *modNum in [[AmethystSettings shared] modsForCategory:AmethystModCategoryLayouts]) {
+        AmethystToggleRow *row = [[AmethystToggleRow alloc] initWithMod:(AmethystMod)modNum.integerValue];
+        row.onToggle = toggleHandler;
+        [layoutStack addArrangedSubview:row];
+    }
+
+    UIButton *logBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    logBtn.translatesAutoresizingMaskIntoConstraints = NO;
+    [logBtn setTitle:@"log layouts now" forState:UIControlStateNormal];
+    [logBtn setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
+    logBtn.titleLabel.font = [UIFont fontWithName:@"Menlo" size:13] ?: [UIFont monospacedSystemFontOfSize:13 weight:UIFontWeightRegular];
+    logBtn.layer.borderColor = [UIColor colorWithWhite:1.0 alpha:0.5].CGColor;
+    logBtn.layer.borderWidth = 1.0;
+    logBtn.contentEdgeInsets = UIEdgeInsetsMake(8, 16, 8, 16);
+    [logBtn addTarget:self action:@selector(logLayoutsTapped) forControlEvents:UIControlEventTouchUpInside];
+    [_panel addSubview:logBtn];
 
     _terminalLabel = [[UILabel alloc] init];
     _terminalLabel.translatesAutoresizingMaskIntoConstraints = NO;
@@ -140,8 +178,8 @@
 
     [footer addArrangedSubview:[self footerColumnWithLabel:@"type" value:@"info overlay"]];
     [footer addArrangedSubview:[self footerColumnWithLabel:@"platform" value:@"war robots"]];
-    [footer addArrangedSubview:[self footerColumnWithLabel:@"version" value:@"1.0.0"]];
-    [footer addArrangedSubview:[self footerColumnWithLabel:@"status" value:@"ui only"]];
+    [footer addArrangedSubview:[self footerColumnWithLabel:@"version" value:@"1.2.0"]];
+    [footer addArrangedSubview:[self footerColumnWithLabel:@"status" value:@"layouts log"]];
 
     UIButton *closeBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     closeBtn.translatesAutoresizingMaskIntoConstraints = NO;
@@ -185,11 +223,21 @@
         [sectionLabel.topAnchor constraintEqualToAnchor:title.bottomAnchor constant:20],
         [sectionLabel.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
 
-        [stack.topAnchor constraintEqualToAnchor:sectionLabel.bottomAnchor constant:12],
-        [stack.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
-        [stack.trailingAnchor constraintEqualToAnchor:_panel.trailingAnchor constant:-20],
+        [infoStack.topAnchor constraintEqualToAnchor:sectionLabel.bottomAnchor constant:12],
+        [infoStack.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
+        [infoStack.trailingAnchor constraintEqualToAnchor:_panel.trailingAnchor constant:-20],
 
-        [_terminalLabel.topAnchor constraintEqualToAnchor:stack.bottomAnchor constant:20],
+        [layoutsLabel.topAnchor constraintEqualToAnchor:infoStack.bottomAnchor constant:20],
+        [layoutsLabel.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
+
+        [layoutStack.topAnchor constraintEqualToAnchor:layoutsLabel.bottomAnchor constant:12],
+        [layoutStack.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
+        [layoutStack.trailingAnchor constraintEqualToAnchor:_panel.trailingAnchor constant:-20],
+
+        [logBtn.topAnchor constraintEqualToAnchor:layoutStack.bottomAnchor constant:12],
+        [logBtn.centerXAnchor constraintEqualToAnchor:_panel.centerXAnchor],
+
+        [_terminalLabel.topAnchor constraintEqualToAnchor:logBtn.bottomAnchor constant:20],
         [_terminalLabel.leadingAnchor constraintEqualToAnchor:_panel.leadingAnchor constant:20],
         [_terminalLabel.trailingAnchor constraintEqualToAnchor:_panel.trailingAnchor constant:-20],
 
@@ -226,6 +274,15 @@
     [col addArrangedSubview:lbl];
     [col addArrangedSubview:val];
     return col;
+}
+
+- (void)logLayoutsTapped {
+    [AmethystLayoutLogger logLayoutsNow];
+    [self updateTerminalForLayouts];
+}
+
+- (void)updateTerminalForLayouts {
+    self.terminalLabel.text = [NSString stringWithFormat:@"$ layouts -> %@█", [AmethystLayoutLogger logFilePath]];
 }
 
 - (void)refreshTimestamp {

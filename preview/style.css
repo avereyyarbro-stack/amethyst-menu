@@ -203,6 +203,18 @@ body {
   text-transform: lowercase;
 }
 
+.layout-log-btn {
+  margin-top: 12px;
+}
+
+.toggles .section-label {
+  margin-top: 16px;
+}
+
+.toggles .section-label:first-child {
+  margin-top: 20px;
+}
+
 @media (max-width: 480px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

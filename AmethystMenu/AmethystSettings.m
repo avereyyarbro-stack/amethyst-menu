@@ -8,6 +8,14 @@ static NSString *AmethystModKey(AmethystMod mod) {
             return @"enemy_health_numbers";
         case AmethystModAnaksorInvisHighlight:
             return @"anaksor_invis_highlight";
+        case AmethystModLayoutRobotSlots:
+            return @"layout_robot_slots";
+        case AmethystModLayoutSlotRobots:
+            return @"layout_slot_robots";
+        case AmethystModLayoutRobotWeapons:
+            return @"layout_robot_weapons";
+        case AmethystModLayoutTitanWeapons:
+            return @"layout_titan_weapons";
         default:
             return @"unknown";
     }
@@ -33,12 +41,57 @@ static NSString *AmethystModKey(AmethystMod mod) {
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
+- (AmethystModCategory)categoryForMod:(AmethystMod)mod {
+    if (mod <= AmethystModAnaksorInvisHighlight) {
+        return AmethystModCategoryInformational;
+    }
+    return AmethystModCategoryLayouts;
+}
+
+- (NSString *)categoryTitle:(AmethystModCategory)category {
+    switch (category) {
+        case AmethystModCategoryInformational:
+            return @"informational mods";
+        case AmethystModCategoryLayouts:
+            return @"layouts";
+        default:
+            return @"mods";
+    }
+}
+
+- (NSArray<NSNumber *> *)modsForCategory:(AmethystModCategory)category {
+    NSMutableArray<NSNumber *> *mods = [NSMutableArray array];
+    for (NSInteger i = 0; i < AmethystModCount; i++) {
+        AmethystMod mod = (AmethystMod)i;
+        if ([self categoryForMod:mod] == category) {
+            [mods addObject:@(mod)];
+        }
+    }
+    return mods;
+}
+
+- (BOOL)isLayoutMod:(AmethystMod)mod {
+    return [self categoryForMod:mod] == AmethystModCategoryLayouts;
+}
+
+- (NSString *)keyForMod:(AmethystMod)mod {
+    return AmethystModKey(mod);
+}
+
 - (NSString *)titleForMod:(AmethystMod)mod {
     switch (mod) {
         case AmethystModEnemyHealth:
             return @"enemy team health numbers";
         case AmethystModAnaksorInvisHighlight:
             return @"anaksor invisibility highlight";
+        case AmethystModLayoutRobotSlots:
+            return @"log robot slots";
+        case AmethystModLayoutSlotRobots:
+            return @"log slot robots";
+        case AmethystModLayoutRobotWeapons:
+            return @"log robot weapons";
+        case AmethystModLayoutTitanWeapons:
+            return @"log titan weapons";
         default:
             return @"unknown";
     }
@@ -50,6 +103,14 @@ static NSString *AmethystModKey(AmethystMod mod) {
             return @"display numeric hp above enemy robots";
         case AmethystModAnaksorInvisHighlight:
             return @"outline anaksor while stealth is active";
+        case AmethystModLayoutRobotSlots:
+            return @"record hangar slot ids to layouts.log";
+        case AmethystModLayoutSlotRobots:
+            return @"record robot name/id per slot";
+        case AmethystModLayoutRobotWeapons:
+            return @"record equipped weapons per robot";
+        case AmethystModLayoutTitanWeapons:
+            return @"record titan and titan weapon loadout";
         default:
             return @"";
     }

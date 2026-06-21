@@ -68,7 +68,7 @@ static void AmethystRegisterLifecycleHooks(void) {
                     }];
 }
 
-static void AmethystBootstrap(void) {
+static void AmethystStart(void) {
     NSLog(@"[Amethyst] sideload build loaded - tap menu top-right");
     AmethystRegisterLifecycleHooks();
     dispatch_after(
@@ -78,8 +78,8 @@ static void AmethystBootstrap(void) {
         });
 }
 
-%ctor {
+__attribute__((constructor)) static void AmethystInit(void) {
     dispatch_async(dispatch_get_main_queue(), ^{
-        AmethystBootstrap();
+        AmethystStart();
     });
 }

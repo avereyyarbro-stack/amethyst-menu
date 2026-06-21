@@ -29,12 +29,12 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Build sideload dylib
-        run: make package FINALPACKAGE=1
+        run: make 2>&1 | tee build.log
 
       - name: Package for Sideloadly injection
         run: |
           mkdir -p packages/inject
-          DYLIB="$(find .theos -type f -name 'Amethyst.dylib' | head -n1)"
+          DYLIB="$(find .theos -type f \( -name 'Amethyst.dylib' -o -name 'libAmethyst.dylib' \) | head -n1)"
           if [ -z "$DYLIB" ]; then
             echo "Amethyst.dylib not found"
             exit 1
