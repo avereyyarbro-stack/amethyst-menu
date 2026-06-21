@@ -29,7 +29,9 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git "$THEOS/sdks"
 
       - name: Build sideload dylib
-        run: make 2>&1 | tee build.log
+        run: |
+          set -o pipefail
+          make 2>&1 | tee build.log
 
       - name: Package for Sideloadly injection
         run: |
