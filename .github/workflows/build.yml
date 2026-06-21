@@ -37,16 +37,19 @@ jobs:
             cat build.log
             exit 1
           fi
-          find .theos -name '*.dylib' -ls
+          find .theos -type f -name '*.dylib' -exec ls -la {} \;
 
       - name: Package .deb for injection
         run: |
-          DYLIB="$(find .theos -name 'Amethyst.dylib' -type f | head -n1)"
+          DYLIB="$(find .theos -type f \( -name 'Amethyst.dylib' -o -name 'libAmethyst.dylib' \) | head -n1)"
           if [ -z "$DYLIB" ]; then
-            echo "Amethyst.dylib not found"
+            echo "Amethyst dylib not found"
+            find .theos -type f
             exit 1
           fi
-          python3 scripts/build_deb.py --dylib "$DYLIB"
+          cp "$DYLIB" packages/inject/Amethyst.dylib
+          install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib || true
+          python3 scripts/build_deb.py --dylib packages/inject/Amethyst.dylib
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4

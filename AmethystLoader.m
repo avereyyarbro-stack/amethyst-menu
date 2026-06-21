@@ -48,10 +48,10 @@ static void AmethystInstallOverlay(void) {
 }
 
 static void AmethystRegisterLifecycleHooks(void) {
-    NSNotificationCenter *center = NSNotificationCenter.defaultCenter;
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     [center addObserverForName:UIApplicationDidFinishLaunchingNotification
                         object:nil
-                         queue:NSOperationQueue.mainQueue
+                         queue:[NSOperationQueue mainQueue]
                     usingBlock:^(__unused NSNotification *note) {
                         dispatch_after(
                             dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)),
@@ -61,7 +61,7 @@ static void AmethystRegisterLifecycleHooks(void) {
                     }];
     [center addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil
-                         queue:NSOperationQueue.mainQueue
+                         queue:[NSOperationQueue mainQueue]
                     usingBlock:^(__unused NSNotification *note) {
                         AmethystInstallOverlay();
                     }];
@@ -77,4 +77,8 @@ void AmethystStart(void) {
                 AmethystInstallOverlay();
             });
     });
+}
+
+__attribute__((constructor)) static void AmethystInit(void) {
+    AmethystStart();
 }
