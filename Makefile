@@ -13,7 +13,12 @@ Amethyst_FILES = Amethyst.x \
 	AmethystMenu/AmethystSettings.m \
 	AmethystMenu/AmethystFloatingButton.m
 Amethyst_CFLAGS = -fobjc-arc
-Amethyst_LDFLAGS = -install_name @executable_path/Frameworks/Amethyst.dylib
 Amethyst_FRAMEWORKS = UIKit QuartzCore
 
 include $(THEOS)/makefiles/tweak.mk
+
+after-all::
+	@DYLIB=$$(find $(THEOS_OBJ_DIR) -name 'Amethyst.dylib' -type f | head -n1); \
+	if [ -n "$$DYLIB" ]; then \
+	  install_name_tool -id @executable_path/Frameworks/Amethyst.dylib "$$DYLIB" || true; \
+	fi

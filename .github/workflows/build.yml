@@ -32,7 +32,12 @@ jobs:
         run: |
           set -o pipefail
           make 2>&1 | tee build.log
-          test ${PIPESTATUS[0]} -eq 0
+          if [ ${PIPESTATUS[0]} -ne 0 ]; then
+            echo "===== BUILD LOG ====="
+            cat build.log
+            exit 1
+          fi
+          find .theos -name '*.dylib' -ls
 
       - name: Package .deb for injection
         run: |
