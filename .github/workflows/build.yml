@@ -33,16 +33,22 @@ jobs:
 
       - name: Package for Sideloadly injection
         run: |
-          set -euxo pipefail
+          set -eu
           mkdir -p packages/inject
           find .theos -type f -name '*.dylib' -print
-          DYLIB="$(find .theos -type f \( -name 'Amethyst.dylib' -o -name 'libAmethyst.dylib' \) | head -n1)"
+          DYLIB="$(find .theos -type f \( -name 'libAmethyst.dylib' -o -name 'Amethyst.dylib' \) -print -quit || true)"
+          if [ -z "$DYLIB" ]; then
+            DYLIB="$(find .theos/obj -type f -name '*.dylib' -print -quit || true)"
+          fi
           if [ -z "$DYLIB" ]; then
             echo "Amethyst dylib not found under .theos"
             exit 1
           fi
-          python3 scripts/build_deb.py --dylib "$DYLIB"
-          install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib || true
+          echo "Using dylib: $DYLIB"
+          cp "$DYLIB" packages/inject/Amethyst.dylib
+          install_name_tool -id @executable_path/Frameworks/Amethyst.dylib packages/inject/Amethyst.dylib
+          file packages/inject/Amethyst.dylib
+          python3 scripts/build_deb.py --dylib packages/inject/Amethyst.dylib
           ls -la packages packages/inject
 
       - name: Upload artifact
