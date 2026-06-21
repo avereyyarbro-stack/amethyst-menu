@@ -78,7 +78,3 @@ void AmethystStart(void) {
             });
     });
 }
-
-__attribute__((constructor)) static void AmethystInit(void) {
-    AmethystStart();
-}
